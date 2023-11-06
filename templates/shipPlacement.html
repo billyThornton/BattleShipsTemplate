@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Battleships Game - Boat Allocation</title>
+    <style>
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            grid-gap: 0px;
+            width: 500px;
+            margin: 0 auto;
+        }
+        .grid div {
+            border: 1px solid #000;
+            height: 50px;
+        }
+        .grid div:hover {
+            background-color: #ddd;
+        }
+
+        .ship{
+            background-color: grey;
+        }
+
+        .sendButton {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100px;
+            height: 50px;
+            background-color: green;
+            color: white;
+            font-size: 20px;
+            border: none;
+        }
+
+
+        .selected {
+            background-color: #aaa;
+        }
+    </style>
+    <script>
+        function sendBoard(url) {
+            /**
+             * TODO: Post variable with board state
+             * */
+            fetch(url+'?'+'').then(function(response) {
+              return response.json();
+            }).then(function(data) {
+              console.log(data);
+            }).catch(function(err) {
+              console.log('Fetch Error :-S', err);
+            });
+        }
+
+    {#    Function to create a board from the grid in the application#}
+    function createBoardState(){
+
+    }
+
+    var boardWidth = 10;
+        var shipsLength = [5, 4, 3, 2, 2];
+
+        var selectedShip = 0;
+
+        var horizontal = true;
+
+        function selectShip(ship) {
+            selectedShip = ship;
+        }
+
+        //Checks all cells in a given ship length to see if they are occupied by another ship
+        function checkShipsClash(x, y){
+            var current_ship_length = shipsLength[selectedShip];
+            if (horizontal){
+                if(x+current_ship_length>boardWidth){
+                    return true;
+                }else{
+                    for (var i = x; i < x+current_ship_length; i++) {
+                        var cell = document.getElementById('cell-' + i + '-' + y);
+                        if (cell.classList.contains("ship")){
+                            return true;
+                        }
+                    }
+                }
+            }else{
+                if (y+current_ship_length>boardWidth){
+                    return true;
+                }else{
+                    for (var i = y; i < y+current_ship_length; i++) {
+                        var cell = document.getElementById('cell-' + x + '-' + i);
+                        if (cell.classList.contains("ship")){
+                            return true;
+                        }
+                    }
+                }
+
+            }
+            return false;
+        }
+
+        function placeShip(x, y) {
+           //Adds the ship class to all the elements within length
+            var current_ship_length = shipsLength[selectedShip];
+            if (horizontal){
+                if(x+current_ship_length>boardWidth || checkShipsClash(x,y) ){
+                    alert("Ship is too long for this position");
+                }else{
+                    for (var i = x; i < x+current_ship_length; i++) {
+                        var cell = document.getElementById('cell-' + i + '-' + y);
+                        cell.classList.add("ship");
+                        cell.classList.add("ship" + selectedShip);
+
+                    }
+                    selectedShip++;
+                }
+            }else{
+                if (y+current_ship_length>boardWidth || checkShipsClash(x,y)){
+                    alert("Ship is too long for this position");
+                }else{
+                    for (var i = y; i < y+current_ship_length; i++) {
+                        var cell = document.getElementById('cell-' + x + '-' + i);
+                        cell.classList.add("ship");
+                        cell.classList.add("ship" + selectedShip);
+
+                    }
+                    selectedShip++;
+
+
+                }
+
+            }
+
+            console.log('Placed ship ' + selectedShip + ' at ' + x + ', ' + y);
+        }
+
+        function handleMouseOver(x, y) {
+            //Call to the [colision function (x,y)] -> t/f
+
+
+            // Handle the mouseover event here
+            var current_ship_length = shipsLength[selectedShip];
+            if (horizontal){
+                //If ship goes off board or hits another ship
+                if(x+current_ship_length>boardWidth || checkShipsClash(x,y)){
+                    //For all gride elements that are visible set colour to red
+                    for (var i = x; (i < boardWidth) && i<x+current_ship_length; i++) {
+                        var cell = document.getElementById('cell-' + i + '-' + y);
+                        cell.style.backgroundColor = "red";
+                    }
+                }else{
+                    //Indicate the ship location using green colour
+                    for (var i = x; i < x+current_ship_length; i++) {
+                        var cell = document.getElementById('cell-' + i + '-' + y);
+                        cell.style.backgroundColor = "green";
+                    }
+                }
+            }else{
+                if (y+current_ship_length>boardWidth || checkShipsClash(x,y)){
+                    //For all gride elements that are visible set colour to red
+                    for (var i = y; i < boardWidth && i<y+current_ship_length; i++) {
+                        var cell = document.getElementById('cell-' + x + '-' + i);
+                        cell.style.backgroundColor = "red";
+                    }
+                }else{
+                    //Indicate the ship location using green colour
+                    for (var i = y; i < y+current_ship_length; i++) {
+                        var cell = document.getElementById('cell-' + x + '-' + i);
+                        cell.style.backgroundColor = "green";
+                    }
+                }
+
+            }
+
+            console.log('Mouse over cell ' + i + ', ' + j);
+
+        }
+
+        function handleMouseOut(){
+            //clears formatting for grid elements
+            for (var i = 0; i < boardWidth; i++) {
+                for (var j = 0; j < boardWidth; j++) {
+                    var cell = document.getElementById('cell-' + i + '-' + j);
+                    cell.style.backgroundColor = "";
+                }
+            }
+        }
+
+        //when R key is pressed toggle horizontal variable
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'r' || event.key === 'R') {
+                horizontal = !horizontal;
+            }
+        });
+
+
+    </script>
+</head>
+
+
+<body>
+    <h1>Battleships Game - Boat Allocation</h1>
+
+    <div class="grid">
+        {% for i in range(10) %}
+            {% for j in range(10) %}
+                <div id="cell-{{j}}-{{i}}" onclick="placeShip({{j}}, {{i}});" onmouseover="handleMouseOver({{ j }},{{ i }})" onmouseout="handleMouseOut()"></div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+{#    Insert the url for the send board as the someul string #}
+    <button class="sendButton" onclick="sendBoard('someurl')">Send Game</button>
+
+</body>
+</html>
